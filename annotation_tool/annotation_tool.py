@@ -14,7 +14,7 @@ import argparse
 import json
 
 width = 1024
-height = 640
+height = 700
 
 text_width = 90
 font_name = "Bitstream Charter"
@@ -23,17 +23,20 @@ font_size = 12
 SUMMARY = "summary"
 STRAPLINE = "strapline"
 BOTH = "summary_and_strapline"
+NEITHER = "no_summary_no_strapline"
+SKIP = "skipped"
 
 
 
 class Window(ttk.Frame):
 
-    def __init__(self, master, source_file_loc):
+    def __init__(self, master, source_file_loc, annotator_id):
     # ~ def __init__(self, master):
         ttk.Frame.__init__(self, master)        
         self.master = master
     
         self.source_file_loc = source_file_loc
+        self.annotator_id = annotator_id
         
         # widget can take all window
         self.pack(fill=tkinter.BOTH, expand=1)
@@ -52,6 +55,8 @@ class Window(ttk.Frame):
         self.rowconfigure(7, pad=10)
         self.rowconfigure(8, pad=10)
         self.rowconfigure(9, pad=10)
+        self.rowconfigure(10, pad=10)
+        self.rowconfigure(11, pad=10)
         
         
         lbl = ttk.Label(self, text="Headline: ")
@@ -110,24 +115,18 @@ class Window(ttk.Frame):
         self.article['yscrollcommand'] = scrollbar.set
         
         
-        
-        # ~ self.summary_or_not = tkinter.IntVar()
-        # ~ c1 = ttk.Checkbutton(self, text='Summary?',variable=self.summary_or_not, onvalue=1, offvalue=0, command=self.print_selection)
-        
-        
-        # ~ self.strapline_or_not = tkinter.IntVar()
-        # ~ c2 = ttk.Checkbutton(self, text='Strapline?',variable=self.strapline_or_not, onvalue=1, offvalue=0, command=self.print_selection)
-        # ~ c1.grid(row=3, column=0, sticky=tkinter.W)
-        # ~ c2.grid(row=3, column=1, sticky=tkinter.W)
-        
         self.annotation_var = tkinter.IntVar()
         
         self.r1 = ttk.Radiobutton(self, text="Summary", variable=self.annotation_var, value=1)
         self.r2 = ttk.Radiobutton(self, text="Strapline", variable=self.annotation_var, value=2)
-        self.r3 = ttk.Radiobutton(self, text="Both", variable=self.annotation_var, value=3)
+        self.r3 = ttk.Radiobutton(self, text="Neither", variable=self.annotation_var, value=3)
+        self.r4 = ttk.Radiobutton(self, text="Both", variable=self.annotation_var, value=4)
+        self.r5 = ttk.Radiobutton(self, text="Skip", variable=self.annotation_var, value=5)
         self.r1.grid(row=3, column=1,sticky=tkinter.W)
         self.r2.grid(row=4, column=1,sticky=tkinter.W)
         self.r3.grid(row=5, column=1,sticky=tkinter.W)
+        self.r4.grid(row=6, column=1,sticky=tkinter.W)
+        self.r5.grid(row=7, column=1,sticky=tkinter.W)
         
         
         
@@ -136,29 +135,29 @@ class Window(ttk.Frame):
         #lbl2.pack(anchor='sw')
 
         nextButton = ttk.Button(self, text="Next example", command=self.nextClick)
-        nextButton.grid(row=6, column=1, sticky=tkinter.W)
+        nextButton.grid(row=8, column=1, sticky=tkinter.W)
         prevButton = ttk.Button(self, text="Previous example", command=self.prevClick)
-        prevButton.grid(row=7, column=1, sticky=tkinter.W)
+        prevButton.grid(row=9, column=1, sticky=tkinter.W)
 
         
         lbl = ttk.Label(self, text='Comments: ')
-        lbl.config(anchor=tkinter.CENTER)
-        lbl.grid(row=8, column=0)
+        lbl.config(anchor=tkinter.CENTER, font=text_font)
+        lbl.grid(row=10, column=0)
         
         self.comment = tkinter.Text(self, height=3, wrap="word")
         # ~ self.sum.config(anchor=tkinter.CENTER)
-        self.comment.grid(row=8, column=1, sticky="we")
+        self.comment.grid(row=10, column=1, sticky="we")
         self.comment.configure(font=text_font)
         
         # create a scrollbar widget and set its command to the text widget
         scrollbar = ttk.Scrollbar(self, orient='vertical', command=self.sum.yview)
-        scrollbar.grid(row=8, column=2, sticky='ns')
+        scrollbar.grid(row=10, column=2, sticky='ns')
 
         #  communicate back to the scrollbar
         self.comment['yscrollcommand'] = scrollbar.set
         
         exitButton = ttk.Button(self, text="Write annotations & Exit", command=self.clickExitButton)
-        exitButton.grid(row=9, column=1, sticky='ns')
+        exitButton.grid(row=11, column=1, sticky='ns')
         
         
         
@@ -174,6 +173,8 @@ class Window(ttk.Frame):
         with open(filename) as f:
             for i, line in enumerate(f):
                 self.instances.append(json.loads(line))
+                if "annotator" in self.instances[-1] and self.instances[-1]["annotator"] != self.annotator_id:
+                    raise ValueError(f'Annotator id {self.instances[-1]["annotator"]} was already used in this file and you ({self.annotator_id}) would overwrite their work.')
                 
     def save_summaries(self, filename):
         with open(filename, "w") as f:
@@ -218,12 +219,22 @@ class Window(ttk.Frame):
         set_a = 0
         if "annotation" in self.instances[i]:
             a = self.instances[i]["annotation"]
-            if a == SUMMARY:
+            if a is None:
+                set_a = 0
+            elif a == SUMMARY:
                 set_a = 1
             elif a == STRAPLINE:
                 set_a = 2
-            elif a == BOTH:
+                
+            elif a == NEITHER:
                 set_a = 3
+                
+            elif a == BOTH:
+                set_a = 4
+            elif a == SKIP:
+                set_a = 5
+            else:
+                raise ValueError(f"Unknown code {a}")
                 
         self.annotation_var.set(set_a)
         # ~ self.lbl["text"] = self.instances[i]["title"]
@@ -244,7 +255,15 @@ class Window(ttk.Frame):
         elif a == 2:
             self.instances[self.active_instance]["annotation"] = STRAPLINE
         elif a == 3:
+            self.instances[self.active_instance]["annotation"] = NEITHER
+        elif a == 4:
             self.instances[self.active_instance]["annotation"] = BOTH
+        elif a == 5:
+            self.instances[self.active_instance]["annotation"] = SKIP
+        else:
+            raise ValueError(f"Unknown code {a}")
+        
+        self.instances[self.active_instance]["annotator"] = self.annotator_id
         
         comment_before = self.instances[self.active_instance].get("comment", "")
         comment = self.comment.get(1.0, "end-1c")
@@ -272,10 +291,12 @@ class Window(ttk.Frame):
 
 parser = argparse.ArgumentParser()
 parser.add_argument("file_to_annotate")
+parser.add_argument("annotator_id")
 
 args = parser.parse_args()
 
-filename= args.file_to_annotate
+filename=args.file_to_annotate
+annotator_id = args.annotator_id
 
 if ttk_themes_available:
     root = ThemedTk(theme=theme_name)
@@ -284,7 +305,7 @@ else:
 
 text_font = Font(family=font_name, size=font_size)
 # ~ root.option_add('*Font', text_font)
-app = Window(root, filename)
+app = Window(root, filename, annotator_id)
 root.wm_title("Strapline annotation tool.")
 root.geometry(f"{width}x{height}")
 root.protocol("WM_DELETE_WINDOW", app.clickExitButton)
