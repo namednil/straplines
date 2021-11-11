@@ -14,7 +14,7 @@ import argparse
 import json
 
 width = 1024
-height = 700
+height = 780
 
 text_width = 90
 font_name = "Bitstream Charter"
@@ -25,6 +25,7 @@ STRAPLINE = "strapline"
 BOTH = "summary_and_strapline"
 NEITHER = "no_summary_no_strapline"
 SKIP = "skipped"
+PARA = "paraphrase"
 
 
 
@@ -57,6 +58,8 @@ class Window(ttk.Frame):
         self.rowconfigure(9, pad=10)
         self.rowconfigure(10, pad=10)
         self.rowconfigure(11, pad=10)
+        self.rowconfigure(12, pad=10)
+        self.rowconfigure(13, pad=10)
         
         
         lbl = ttk.Label(self, text="Headline: ")
@@ -122,11 +125,13 @@ class Window(ttk.Frame):
         self.r3 = ttk.Radiobutton(self, text="Neither", variable=self.annotation_var, value=3)
         self.r4 = ttk.Radiobutton(self, text="Both", variable=self.annotation_var, value=4)
         self.r5 = ttk.Radiobutton(self, text="Skip", variable=self.annotation_var, value=5)
+        self.r6 = ttk.Radiobutton(self, text="Paraphrase", variable=self.annotation_var, value=6)
         self.r1.grid(row=3, column=1,sticky=tkinter.W)
         self.r2.grid(row=4, column=1,sticky=tkinter.W)
         self.r3.grid(row=5, column=1,sticky=tkinter.W)
         self.r4.grid(row=6, column=1,sticky=tkinter.W)
         self.r5.grid(row=7, column=1,sticky=tkinter.W)
+        self.r6.grid(row=8, column=1,sticky=tkinter.W)
         
         
         
@@ -135,29 +140,33 @@ class Window(ttk.Frame):
         #lbl2.pack(anchor='sw')
 
         nextButton = ttk.Button(self, text="Next example", command=self.nextClick)
-        nextButton.grid(row=8, column=1, sticky=tkinter.W)
+        nextButton.grid(row=9, column=1, sticky=tkinter.W)
         prevButton = ttk.Button(self, text="Previous example", command=self.prevClick)
-        prevButton.grid(row=9, column=1, sticky=tkinter.W)
+        prevButton.grid(row=10, column=1, sticky=tkinter.W)
+        
+        self.extractive = tkinter.IntVar()
+        check = ttk.Checkbutton(self, text='"Summary" actually extractive?',variable=self.extractive, onvalue=1, offvalue=0)
+        check.grid(row=11, column = 1, sticky=tkinter.W)
 
         
         lbl = ttk.Label(self, text='Comments: ')
         lbl.config(anchor=tkinter.CENTER, font=text_font)
-        lbl.grid(row=10, column=0)
+        lbl.grid(row=12, column=0)
         
         self.comment = tkinter.Text(self, height=3, wrap="word")
         # ~ self.sum.config(anchor=tkinter.CENTER)
-        self.comment.grid(row=10, column=1, sticky="we")
+        self.comment.grid(row=12, column=1, sticky="we")
         self.comment.configure(font=text_font)
         
         # create a scrollbar widget and set its command to the text widget
         scrollbar = ttk.Scrollbar(self, orient='vertical', command=self.sum.yview)
-        scrollbar.grid(row=10, column=2, sticky='ns')
+        scrollbar.grid(row=12, column=2, sticky='ns')
 
         #  communicate back to the scrollbar
         self.comment['yscrollcommand'] = scrollbar.set
         
         exitButton = ttk.Button(self, text="Write annotations & Exit", command=self.clickExitButton)
-        exitButton.grid(row=11, column=1, sticky='ns')
+        exitButton.grid(row=13, column=1, sticky='ns')
         
         
         
@@ -233,8 +242,14 @@ class Window(ttk.Frame):
                 set_a = 4
             elif a == SKIP:
                 set_a = 5
+                
+            elif a == PARA:
+                set_a = 6
             else:
                 raise ValueError(f"Unknown code {a}")
+                
+        if "marked_as_extractive" in self.instances[i]:
+            self.extractive.set(int(bool(self.instances[i]["marked_as_extractive"])))
                 
         self.annotation_var.set(set_a)
         # ~ self.lbl["text"] = self.instances[i]["title"]
@@ -260,10 +275,14 @@ class Window(ttk.Frame):
             self.instances[self.active_instance]["annotation"] = BOTH
         elif a == 5:
             self.instances[self.active_instance]["annotation"] = SKIP
+        elif a == 6:
+            self.instances[self.active_instance]["annotation"] = PARA
         else:
             raise ValueError(f"Unknown code {a}")
         
         self.instances[self.active_instance]["annotator"] = self.annotator_id
+        
+        self.instances[self.active_instance]["marked_as_extractive"] = bool(self.extractive.get())
         
         comment_before = self.instances[self.active_instance].get("comment", "")
         comment = self.comment.get(1.0, "end-1c")
