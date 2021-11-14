@@ -250,6 +250,8 @@ class Window(ttk.Frame):
                 
         if "marked_as_extractive" in self.instances[i]:
             self.extractive.set(int(bool(self.instances[i]["marked_as_extractive"])))
+        else:
+            self.extractive.set(int(False))
                 
         self.annotation_var.set(set_a)
         # ~ self.lbl["text"] = self.instances[i]["title"]
