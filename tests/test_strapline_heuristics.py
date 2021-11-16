@@ -56,3 +56,15 @@ def test_ending_with_a_dot(spacy_model):
     )
     article.compute_additional_fields(spacy_model)
     assert lf_strange_ending(article) == ABSTAIN
+
+
+def test_ending_with_a_comma(spacy_model):
+    article = NewsRoomArticle(
+        {
+            "summary": "This summary ends with a comma,",
+            "coverage": -1,
+            "density": -1,
+        }
+    )
+    article.compute_additional_fields(spacy_model)
+    assert lf_strange_ending(article) == STRAPLINE

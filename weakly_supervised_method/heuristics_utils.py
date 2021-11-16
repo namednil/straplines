@@ -55,7 +55,7 @@ def has_strange_ending(article):
     """
     summary_tokens = article.data["summary_tokens"]
 
-    last_token_text = summary_tokens[-1].text.lower()
+    last_token_text = summary_tokens[-1].text.lower().strip()
     # List of pos tags can be found through: https://universaldependencies.org/u/pos/
     last_token_pos = summary_tokens[-1].pos_
 
