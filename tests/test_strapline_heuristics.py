@@ -6,6 +6,7 @@ from weakly_supervised_method.heuristics import (
     lf_has_1st_or_2nd_person_pronoun,
     lf_has_question_exclamation_marks,
     lf_imperative_speech,
+    lf_is_repeated,
 )
 from weakly_supervised_method.data import NewsRoomArticle
 from weakly_supervised_method.heuristics import ABSTAIN, NOT_STRAPLINE, STRAPLINE
@@ -110,3 +111,16 @@ def test_imperative_speech(spacy_model):
     )
     article.compute_additional_fields(spacy_model)
     assert lf_imperative_speech(article) == STRAPLINE
+
+
+def test_is_repeated(spacy_model):
+    article = NewsRoomArticle(
+        {
+            "summary": "Check me now.",
+            "coverage": -1,
+            "density": -1,
+            "summary_repetition_count": 10,
+        }
+    )
+    article.compute_additional_fields(spacy_model)
+    assert lf_is_repeated(article) == STRAPLINE

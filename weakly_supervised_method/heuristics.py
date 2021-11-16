@@ -90,3 +90,10 @@ def lf_imperative_speech(article):
     if summary_tokens[0].tag_ == "VB":
         return STRAPLINE
     return ABSTAIN
+
+
+@labeling_function()
+def lf_is_repeated(article):
+    if article.data["summary_repetition_count"] > 1:
+        return STRAPLINE
+    return ABSTAIN

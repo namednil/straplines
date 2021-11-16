@@ -53,3 +53,17 @@ class NewsRoomDataset:
         logging.info("Compute additional fields for each article")
         for article in tqdm(self.articles):
             article.compute_additional_fields(self.spacy_model)
+
+        summaries_dict = {}
+        logging.info("Search for duplicated summaries")
+        for article in tqdm(self.articles):
+            summary = article.data["summary"]
+            if summary not in summaries_dict:
+                summaries_dict[summary] = 1
+            else:
+                summaries_dict[summary] += 1
+
+        for article in tqdm(self.articles):
+            article.data["summary_repetition_count"] = summaries_dict[
+                article.data["summary"]
+            ]

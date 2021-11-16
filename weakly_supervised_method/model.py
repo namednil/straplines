@@ -7,6 +7,7 @@ from heuristics import (
     lf_has_1st_or_2nd_person_pronoun,
     lf_has_question_exclamation_marks,
     lf_imperative_speech,
+    lf_is_repeated,
 )
 
 
@@ -37,6 +38,7 @@ if __name__ == "__main__":
             lf_has_1st_or_2nd_person_pronoun,
             lf_has_question_exclamation_marks,
             lf_imperative_speech,
+            lf_is_repeated,
         ]
     )
     heuristics_model.fit(dataset)
