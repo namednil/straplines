@@ -1,0 +1,6 @@
+coverage
+pytest
+spacy
+snorkel
+python-dateutil
+black
