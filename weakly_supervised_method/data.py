@@ -13,9 +13,7 @@ class NewsRoomArticle:
         self.data = data
 
     def compute_additional_fields(self, spacy_model):
-        self.data["summary_tokens"] = [
-            t.text for t in spacy_model(self.data["summary"])
-        ]
+        self.data["summary_tokens"] = spacy_model(self.data["summary"])
 
         self.data["normalized_density"] = self.data["density"] / len(
             self.data["summary_tokens"]
