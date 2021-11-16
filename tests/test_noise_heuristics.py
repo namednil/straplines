@@ -1,6 +1,6 @@
 import pytest
 import spacy
-from weakly_supervised_method.heuristics import lf_is_a_date, lf_too_short
+from weakly_supervised_method.heuristics import lf_is_a_date, lf_too_short, lf_has_HTML
 from weakly_supervised_method.data import NewsRoomArticle
 from weakly_supervised_method.heuristics import ABSTAIN, NOT_NOISY, NOISY
 
@@ -44,3 +44,15 @@ def test_too_short(spacy_model):
     )
     article.compute_additional_fields(spacy_model)
     assert lf_too_short(article) == NOISY
+
+
+def test_containing_HTML(spacy_model):
+    article = NewsRoomArticle(
+        {
+            "summary": "I has some formatting text! <br>",
+            "coverage": -1,
+            "density": -1,
+        }
+    )
+    article.compute_additional_fields(spacy_model)
+    assert lf_has_HTML(article) == NOISY

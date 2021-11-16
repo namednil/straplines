@@ -1,3 +1,4 @@
+import re
 import dateutil
 from snorkel.labeling import labeling_function
 from weakly_supervised_method.heuristics_utils import (
@@ -29,6 +30,14 @@ def lf_is_a_date(article):
         return NOISY
     except:
         return ABSTAIN
+
+
+@labeling_function()
+def lf_has_HTML(article):
+    # Attempt to parse the text as a date
+    if re.findall(r"<[a-zA-Z0-9_]+[/]?>", article.data["summary"]):
+        return NOISY
+    return ABSTAIN
 
 
 # Heuristics for strapline summaries
