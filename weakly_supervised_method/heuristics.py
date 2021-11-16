@@ -51,3 +51,42 @@ def lf_mostly_quotes(article):
 def lf_strange_ending(article):
     strange_ending = has_strange_ending(article)
     return STRAPLINE if strange_ending else ABSTAIN
+
+
+@labeling_function()
+def lf_has_1st_or_2nd_person_pronoun(article):
+    set_of_person_pronouns = {
+        "i",
+        "me",
+        "mine",
+        "myself",
+        "we",
+        "our",
+        "ours",
+        "ourself",
+        "ourselves",
+        "you",
+        "your",
+        "yours",
+        "yourself",
+        "yourselves",
+    }
+    tokens = [t.text.lower() for t in article.data["summary_tokens"]]
+    if any([t in set_of_person_pronouns for t in tokens]):
+        return STRAPLINE
+    return ABSTAIN
+
+
+@labeling_function()
+def lf_has_question_exclamation_marks(article):
+    if any([c in article.data["summary"] for c in "?!"]):
+        return STRAPLINE
+    return ABSTAIN
+
+
+@labeling_function()
+def lf_imperative_speech(article):
+    summary_tokens = article.data["summary_tokens"]
+    if summary_tokens[0].tag_ == "VB":
+        return STRAPLINE
+    return ABSTAIN

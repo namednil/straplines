@@ -1,6 +1,12 @@
 import pytest
 import spacy
-from weakly_supervised_method.heuristics import lf_mostly_quotes, lf_strange_ending
+from weakly_supervised_method.heuristics import (
+    lf_mostly_quotes,
+    lf_strange_ending,
+    lf_has_1st_or_2nd_person_pronoun,
+    lf_has_question_exclamation_marks,
+    lf_imperative_speech,
+)
 from weakly_supervised_method.data import NewsRoomArticle
 from weakly_supervised_method.heuristics import ABSTAIN, NOT_STRAPLINE, STRAPLINE
 
@@ -68,3 +74,39 @@ def test_ending_with_a_comma(spacy_model):
     )
     article.compute_additional_fields(spacy_model)
     assert lf_strange_ending(article) == STRAPLINE
+
+
+def test_1st_pronoun(spacy_model):
+    article = NewsRoomArticle(
+        {
+            "summary": "I might be a strapline.",
+            "coverage": -1,
+            "density": -1,
+        }
+    )
+    article.compute_additional_fields(spacy_model)
+    assert lf_has_1st_or_2nd_person_pronoun(article) == STRAPLINE
+
+
+def test_using_question_mark(spacy_model):
+    article = NewsRoomArticle(
+        {
+            "summary": "I might be a strapline?",
+            "coverage": -1,
+            "density": -1,
+        }
+    )
+    article.compute_additional_fields(spacy_model)
+    assert lf_has_question_exclamation_marks(article) == STRAPLINE
+
+
+def test_imperative_speech(spacy_model):
+    article = NewsRoomArticle(
+        {
+            "summary": "Check me now.",
+            "coverage": -1,
+            "density": -1,
+        }
+    )
+    article.compute_additional_fields(spacy_model)
+    assert lf_imperative_speech(article) == STRAPLINE
