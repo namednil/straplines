@@ -1,15 +1,16 @@
+import pytest
 import spacy
 from weakly_supervised_method.heuristics import lf_mostly_quotes
 from weakly_supervised_method.data import NewsRoomArticle
+from weakly_supervised_method.heuristics import ABSTAIN, NOT_STRAPLINE, STRAPLINE
+
+# Create this model only once for this testing module
+@pytest.fixture
+def spacy_model(scope="module"):
+    return spacy.load("en_core_web_sm")
 
 
-spacy_model = spacy.load("en_core_web_sm")
-ABSTAIN = -1
-NOT_STRAPLINE = 0
-STRAPLINE = 1
-
-
-def test_high_quotes_coverage():
+def test_high_quotes_coverage(spacy_model):
     article = NewsRoomArticle(
         {
             "summary": 'This summary "contains words between two double quotes"',
@@ -21,7 +22,7 @@ def test_high_quotes_coverage():
     assert lf_mostly_quotes(article) == STRAPLINE
 
 
-def test_low_quotes_coverage():
+def test_low_quotes_coverage(spacy_model):
     article = NewsRoomArticle(
         {
             "summary": "This summary's single quote is a referential one",
