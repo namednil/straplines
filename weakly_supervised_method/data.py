@@ -41,29 +41,47 @@ class NewsRoomArticle:
 
 
 class NewsRoomDataset:
-    def __init__(self, data_file):
+    def __init__(self, data_file=None, articles=None, summaries_dict=None):
         self.spacy_model = spacy.load("en_core_web_sm")
 
-        with open(data_file, "r") as f:
-            article_jsons = [json.loads(l.strip()) for l in f]
+        if data_file:
+            with open(data_file, "r") as f:
+                article_jsons = [json.loads(l.strip()) for l in f]
 
-        self.articles = [
-            NewsRoomArticle(article_json) for article_json in article_jsons
-        ]
+            self.articles = [
+                NewsRoomArticle(article_json) for article_json in article_jsons
+            ]
+        elif articles:
+            self.articles = articles
+        else:
+            raise ValueError(
+                "Please specify either a 'data_file' or a list of 'articles'"
+            )
+
         logging.info("Compute additional fields for each article")
         for article in tqdm(self.articles):
             article.compute_additional_fields(self.spacy_model)
 
-        summaries_dict = {}
+        if not summaries_dict:
+            self.summaries_dict = {}
+        else:
+            self.summaries_dict = summaries_dict
+
         logging.info("Search for duplicated summaries")
         for article in tqdm(self.articles):
             summary = article.data["summary"]
-            if summary not in summaries_dict:
-                summaries_dict[summary] = 1
+            if summary not in self.summaries_dict:
+                self.summaries_dict[summary] = 1
             else:
-                summaries_dict[summary] += 1
+                self.summaries_dict[summary] += 1
 
         for article in tqdm(self.articles):
-            article.data["summary_repetition_count"] = summaries_dict[
+            article.data["summary_repetition_count"] = self.summaries_dict[
                 article.data["summary"]
             ]
+
+    def generate_a_cleaned_dataset(self, predictions):
+        articles = [
+            article for article, pred in zip(self.articles, predictions) if pred != 1
+        ]
+        return NewsRoomDataset(articles=articles)
