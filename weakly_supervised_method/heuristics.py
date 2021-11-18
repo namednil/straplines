@@ -18,7 +18,10 @@ NOISY = 1
 # Heuristics for noisy summaries
 @labeling_function()
 def lf_too_short(article):
-    summary_n_tokens = len(article.data["summary_tokens"])
+    non_punct_tokens = [
+        token for token in article.data["summary_tokens"] if not token.is_punct
+    ]
+    summary_n_tokens = len(non_punct_tokens)
     return NOISY if summary_n_tokens <= 4 else ABSTAIN
 
 
@@ -34,8 +37,11 @@ def lf_is_a_date(article):
 
 @labeling_function()
 def lf_has_HTML(article):
-    # Attempt to parse the text as a date
-    if re.findall(r"<[a-zA-Z0-9_]+[/]?>", article.data["summary"]):
+    # Look for tags in the form <...> or <.../>
+    if re.findall(r"<[[a-zA-Z0-9_]+[/]?[>\]]", article.data["summary"]):
+        return NOISY
+    # Look for formatting in the form ...="
+    if re.findall(r"[a-z]+=\"", article.data["summary"]):
         return NOISY
     return ABSTAIN
 

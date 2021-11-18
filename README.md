@@ -9,7 +9,7 @@ pip install -e .
 
 ## Usage
 ```
-python weakly_supervised_method/model.py
+python weakly_supervised_method/pipeline.py
 ```
 
 ## Testing

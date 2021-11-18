@@ -33,7 +33,9 @@ def get_positive_samples(dataset, prediction_model, lf_data):
 if __name__ == "__main__":
     dataset = NewsRoomDataset("investigation_notebooks/train_samples.jsonl")
 
-    noise_model = WeaklySupervisedMethod([lf_too_short, lf_is_a_date, lf_has_HTML])
+    noise_model = WeaklySupervisedMethod(
+        [lf_too_short, lf_is_a_date, lf_has_HTML, lf_strange_ending]
+    )
     noise_train = noise_model.fit(dataset)
     logging.info(noise_model.generate_train_report())
 
@@ -63,7 +65,6 @@ if __name__ == "__main__":
     heuristics_model = WeaklySupervisedMethod(
         [
             lf_mostly_quotes,
-            lf_strange_ending,
             lf_has_1st_or_2nd_person_pronoun,
             lf_has_question_exclamation_marks,
             lf_imperative_speech,
