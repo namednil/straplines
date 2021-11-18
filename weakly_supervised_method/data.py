@@ -49,7 +49,8 @@ class NewsRoomDataset:
                 article_jsons = [json.loads(l.strip()) for l in f]
 
             self.articles = [
-                NewsRoomArticle(article_json) for article_json in article_jsons
+                NewsRoomArticle(article_json)
+                for article_json in article_jsons
                 if article_json["density_bin"] != "extractive"
             ]
 

@@ -36,7 +36,7 @@ if __name__ == "__main__":
     noise_model = WeaklySupervisedMethod(
         [lf_too_short, lf_is_a_date, lf_has_HTML, lf_strange_ending]
     )
-    noise_train = noise_model.fit(dataset)
+    noise_train, _ = noise_model.fit(dataset)
     logging.info(noise_model.generate_train_report())
 
     noise_majority_model = MajorityLabelVoter()
@@ -71,7 +71,7 @@ if __name__ == "__main__":
             lf_is_repeated,
         ]
     )
-    heuristics_train = heuristics_model.fit(cleaned_dataset)
+    heuristics_train, _ = heuristics_model.fit(cleaned_dataset)
     logging.info(heuristics_model.generate_train_report())
 
     heuristics_majority_model = MajorityLabelVoter()
@@ -95,3 +95,25 @@ if __name__ == "__main__":
     logging.info(
         f"Number of strapline samples detected by the label merging model: {len(label_samples)}"
     )
+
+    # To evaluate
+    evaluation_dataset = NewsRoomDataset(
+        "../data/First round/combined_time.jsonl",
+        summaries_dict=cleaned_dataset.summaries_dict,
+    )
+
+    label_map = {
+        "summary": 0,
+        "strapline": 1,
+        "no_summary_no_strapline": 0,
+        "summary_and_strapline": 1,
+    }
+    pred_map = {-1: 0, 1: 1, 0: 0}
+    for article, pred in zip(
+        evaluation_dataset.articles, heuristics_model.predict(evaluation_dataset)[-1]
+    ):
+        pred = pred_map[pred]
+        label = label_map.get(article.data["annotation"], -1)
+        if label == -1:
+            continue
+        print(f"Predicted: {pred}, Label: {label}")
