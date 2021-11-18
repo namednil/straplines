@@ -50,17 +50,20 @@ class NewsRoomDataset:
 
             self.articles = [
                 NewsRoomArticle(article_json) for article_json in article_jsons
+                if article_json["density_bin"] != "extractive"
             ]
+
+            logging.info("Compute additional fields for each article")
+            for article in tqdm(self.articles):
+                article.compute_additional_fields(self.spacy_model)
+
         elif articles:
             self.articles = articles
+
         else:
             raise ValueError(
                 "Please specify either a 'data_file' or a list of 'articles'"
             )
-
-        logging.info("Compute additional fields for each article")
-        for article in tqdm(self.articles):
-            article.compute_additional_fields(self.spacy_model)
 
         if not summaries_dict:
             self.summaries_dict = {}
