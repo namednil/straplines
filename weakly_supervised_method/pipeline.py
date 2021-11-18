@@ -96,24 +96,32 @@ if __name__ == "__main__":
         f"Number of strapline samples detected by the label merging model: {len(label_samples)}"
     )
 
-    # To evaluate
-    evaluation_dataset = NewsRoomDataset(
-        "../data/First round/combined_time.jsonl",
-        summaries_dict=cleaned_dataset.summaries_dict,
-    )
+    # Run evaluation
+    for dataset_name in ["nyt", "time"]:
+        print(dataset_name)
+        evaluation_dataset = NewsRoomDataset(
+            f"../data/combined_{dataset_name}.jsonl",
+            summaries_dict=cleaned_dataset.summaries_dict,
+        )
 
-    label_map = {
-        "summary": 0,
-        "strapline": 1,
-        "no_summary_no_strapline": 0,
-        "summary_and_strapline": 1,
-    }
-    pred_map = {-1: 0, 1: 1, 0: 0}
-    for article, pred in zip(
-        evaluation_dataset.articles, heuristics_model.predict(evaluation_dataset)[-1]
-    ):
-        pred = pred_map[pred]
-        label = label_map.get(article.data["annotation"], -1)
-        if label == -1:
-            continue
-        print(f"Predicted: {pred}, Label: {label}")
+        # Unify the labels and predictions
+        label_map = {
+            "summary": 0,
+            "strapline": 1,
+            "no_summary_no_strapline": 0,
+            "summary_and_strapline": 1,
+        }
+        pred_map = {-1: 0, 1: 1, 0: 0}
+
+        for article, noise_pred, pred in zip(
+            evaluation_dataset.articles,
+            noise_model.predict(evaluation_dataset)[-1],
+            heuristics_model.predict(evaluation_dataset)[-1],
+        ):
+            pred = pred_map[pred]
+            noise_pred = pred_map[noise_pred]
+            label = label_map.get(article.data["annotation"], -1)
+            if label == -1:
+                continue
+            print(f"Noise: {noise_pred}, Predicted: {pred}, Label: {label}")
+        print()
