@@ -23,7 +23,7 @@ def lf_too_short(article):
         token for token in article.data["summary_tokens"] if not token.is_punct
     ]
     summary_n_tokens = len(non_punct_tokens)
-    return NOISY if summary_n_tokens <= 4 else ABSTAIN
+    return NOISY if summary_n_tokens <= 3 else ABSTAIN
 
 
 @labeling_function()
