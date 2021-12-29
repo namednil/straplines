@@ -1,6 +1,12 @@
 coverage
 pytest
+black
+
 spacy
 snorkel
 python-dateutil
-black
+sklearn
+langdetect
+tqdm
+
+seaborn
