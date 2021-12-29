@@ -9,7 +9,7 @@ pip install -e .
 
 ## Usage
 ```
-python weakly_supervised_method/pipeline.py
+python weakly_supervised_method/pipeline.py --train TRAIN --test TEST --plots_dir PLOTS_DIR
 ```
 
 ## Testing

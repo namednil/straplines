@@ -5,6 +5,7 @@ from weakly_supervised_method.heuristics_utils import (
     compute_quotes_coverage,
     has_strange_ending,
 )
+from langdetect import detect
 
 # NOTE: I am afraid of returning a NOT_STRAPLINE, NOT_NOISY label
 # based on any of the heuristics so I am just ABSTAINing
@@ -46,17 +47,27 @@ def lf_has_HTML(article):
     return ABSTAIN
 
 
+@labeling_function()
+def lf_strange_ending(article):
+    strange_ending = has_strange_ending(article)
+    return STRAPLINE if strange_ending else ABSTAIN
+
+
+@labeling_function()
+def lf_is_non_english(article):
+    try:
+        lang = detect(str(article.data["summary"]))
+    except:
+        # Fallback to English
+        lang = "en"
+    return NOISY if lang != "en" else ABSTAIN
+
+
 # Heuristics for strapline summaries
 @labeling_function()
 def lf_mostly_quotes(article):
     quotes_coverage = compute_quotes_coverage(article)
     return STRAPLINE if quotes_coverage > 0.6 else ABSTAIN
-
-
-@labeling_function()
-def lf_strange_ending(article):
-    strange_ending = has_strange_ending(article)
-    return STRAPLINE if strange_ending else ABSTAIN
 
 
 @labeling_function()
