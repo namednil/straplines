@@ -35,6 +35,13 @@ class NewsRoomArticle:
             else "extractive"
         )
 
+    def dump(self):
+        summary_tokens = self.data["summary_tokens"]
+        self.data.pop("summary_tokens", None)
+        json_str = json.dumps(self.data, indent=2)
+        self.data["summary_tokens"] = summary_tokens
+        return json_str
+
 
 class NewsRoomDataset:
     def __init__(self, data_file=None, summaries_dict=None):
@@ -79,18 +86,20 @@ class NewsRoomDataset:
                 article.data["summary"]
             ]
 
-    def filter_articles(self, keep_mask):
-        """Filter out articles having keep_mask that isn't equal to one."""
+    def filter_articles(self, drop_mask):
+        """Filter out articles having drop_mask that isn't equal to one."""
         dataset = deepcopy(self)
         filtered_articles = [
-            article for article, keep in zip(dataset.articles, keep_mask) if keep != 1
+            article for article, drop in zip(dataset.articles, drop_mask) if drop != 1
         ]
         dataset.articles = filtered_articles
         return dataset
 
     # TODO: Store/load the dataset to avoid repetitive computations
-    def pickle(self):
-        pass
+    def dump(self, filename):
+        json_str = "\n".join([article.dump() for article in tqdm(self.articles)])
+        with open(filename, "w") as f:
+            f.write(json_str)
 
     def unpickle(self):
         pass

@@ -71,7 +71,9 @@ if __name__ == "__main__":
         f"""\nwith percentage: {len(label_samples)/len(dataset.articles)*100}"""
     )
 
-    cleaned_dataset = dataset.filter_articles(noise_majority_model.predict(noise_train))
+    cleaned_dataset = dataset.filter_articles(
+        drop_mask=noise_majority_model.predict(noise_train)
+    )
 
     heuristics_model = WeaklySupervisedMethod(
         [
