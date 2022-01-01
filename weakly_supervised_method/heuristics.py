@@ -39,7 +39,7 @@ def lf_is_a_date(article):
 @labeling_function()
 def lf_has_HTML(article):
     # Look for tags in the form <...> or <.../>
-    if re.findall(r"<[[a-zA-Z0-9_]+[/]?[>\]]", article.data["summary"]):
+    if re.findall(r"<[a-zA-Z0-9_]+[/]?>", article.data["summary"]):
         return NOISY
     # Look for formatting in the form ...="
     if re.findall(r"[a-z]+=\"", article.data["summary"]):

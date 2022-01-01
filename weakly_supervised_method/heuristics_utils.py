@@ -65,13 +65,7 @@ def has_strange_ending(article):
     if last_token_text in ",":
         return True
 
-    if (
-        last_token_pos in ["DET", "INTJ", "CCONJ", "SCONJ", "X"]
-        and last_token_text != "all"
-    ):
-        return True
-
-    if last_token_pos == "PRON" and last_token_text in ["what", "who", "which", "that"]:
+    if last_token_pos in ["DET", "CCONJ", "SCONJ", "X"] and last_token_text != "all":
         return True
 
     return False
