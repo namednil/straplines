@@ -66,7 +66,7 @@ def has_strange_ending(article):
         return True
 
     if (
-        last_token_pos in ["DET", "INTJ", "CCONJ", "AUX", "SCONJ", "X"]
+        last_token_pos in ["DET", "INTJ", "CCONJ", "SCONJ", "X"]
         and last_token_text != "all"
     ):
         return True

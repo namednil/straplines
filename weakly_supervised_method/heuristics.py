@@ -56,7 +56,7 @@ def lf_strange_ending(article):
 @labeling_function()
 def lf_is_non_english(article):
     try:
-        lang = detect(str(article.data["summary"]))
+        lang = detect(str(article.data["text"]))
     except:
         # Fallback to English
         lang = "en"
