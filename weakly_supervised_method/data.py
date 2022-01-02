@@ -38,7 +38,7 @@ class NewsRoomArticle:
     def dump(self):
         summary_tokens = self.data["summary_tokens"]
         self.data.pop("summary_tokens", None)
-        json_str = json.dumps(self.data, indent=2)
+        json_str = json.dumps(self.data)
         self.data["summary_tokens"] = summary_tokens
         return json_str
 
