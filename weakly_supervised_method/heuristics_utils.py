@@ -8,14 +8,15 @@ def compute_quotes_coverage(article):
     A value in range [0, 1] representing the percentage of tokens
     that are enclosed in quotes
     """
-    n_tokens_inside = 0
+    n_tokens_inside = []
     # Keep track of nested quotes
     quotes_stack = []
     # Count the number of tokens inside the current quotes range
     tokens_in_quotes = []
 
-    # TODO: Is single quotation ' needed as well?
-    quotes = '”“‘’"'
+    opening_quotes = '“‘"'
+    closing_quotes = '”’"'
+    quotes = opening_quotes + closing_quotes
 
     summary_tokens = [t.text for t in article.data["summary_tokens"]]
     for token in summary_tokens:
@@ -24,22 +25,27 @@ def compute_quotes_coverage(article):
             tokens_in_quotes[-1] += 1
 
         # The current token is a quotation
-        if token in quotes:
+        elif token in closing_quotes:
             # This is the end of a quotes range
             if quotes_stack and abs(ord(token) - ord(quotes_stack[-1])) <= 1:
                 quotes_stack.pop(-1)
                 # Increment the number of tokens inside quotes range
                 # only when the range ends
-                n_tokens_inside += tokens_in_quotes[-1]
+                n_tokens_inside.append(tokens_in_quotes[-1])
                 tokens_in_quotes.pop(-1)
 
-            # This is the start of a new range
-            else:
-                quotes_stack.append(token)
-                tokens_in_quotes.append(0)
+        # This is the start of a new range that isn't embedded inside
+        # another quotes range
+        elif token in opening_quotes and not quotes_stack:
+            quotes_stack.append(token)
+            tokens_in_quotes.append(0)
 
-    n_non_quotes_tokens = len(
-        [token for token in summary_tokens if token not in quotes]
+    # Find the summation of the ranges' lengths squared
+    # This is inspired by Newsroom coverage metric
+    # to penalize having multiple shorter ranges
+    n_tokens_inside = sum([n_t ** 2 for n_t in n_tokens_inside])
+    n_non_quotes_tokens = (
+        len([token for token in summary_tokens if token not in quotes]) ** 2
     )
     return n_tokens_inside / n_non_quotes_tokens
 

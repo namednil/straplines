@@ -67,7 +67,7 @@ def lf_is_non_english(article):
 @labeling_function()
 def lf_mostly_quotes(article):
     quotes_coverage = compute_quotes_coverage(article)
-    return STRAPLINE if quotes_coverage > 0.6 else ABSTAIN
+    return STRAPLINE if quotes_coverage > 0.36 else ABSTAIN
 
 
 @labeling_function()
