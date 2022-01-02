@@ -111,6 +111,9 @@ def lf_imperative_speech(article):
 
 @labeling_function()
 def lf_is_repeated(article):
-    if article.data["summary_repetition_count"] > 1:
+    if (
+        article.data["summary_repetition_count"] > 1
+        or article.data["title_repetition_count"] > 1
+    ):
         return STRAPLINE
     return ABSTAIN

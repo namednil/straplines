@@ -113,7 +113,8 @@ if __name__ == "__main__":
     for test_data_path in glob.glob(test_data_path):
         evaluation_dataset = NewsRoomDataset(
             test_data_path,
-            summaries_dict=cleaned_dataset.summaries_dict,
+            summaries_dict=dataset.summaries_dict,
+            titles_dict=dataset.titles_dict,
         )
 
         # Unify the labels and predictions
