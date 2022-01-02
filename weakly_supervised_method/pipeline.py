@@ -52,10 +52,16 @@ if __name__ == "__main__":
         default="../plots",
         help="Path of the directory to store the confusion matrices",
     )
+    parser.add_argument(
+        "--output_dir",
+        default="../output",
+        help="Path of the directory to store the abstractive summaries",
+    )
     args = parser.parse_args()
     training_datafile = args.train
     test_data_path = args.test
     plots_dir = args.plots_dir
+    output_dir = args.output_dir
 
     dataset = NewsRoomDataset(training_datafile)
 
@@ -93,6 +99,14 @@ if __name__ == "__main__":
         f"Number of strapline samples detected by the majority voting model: {len(majority_sample)}  out of {len(cleaned_dataset.articles)}"
         f"""\nwith percentage: {len(majority_sample)/len(dataset.articles)*100}"""
     )
+
+
+    abstractive_dataset = cleaned_dataset.filter_articles(
+        drop_mask=heuristics_majority_model.predict(heuristics_train)
+    )
+    output_file_path = f"{Path(output_dir, Path(training_datafile).stem)}.jsonl"
+    logging.info(f"Dumping abstractive articles to '{output_file_path}' file!")
+    abstractive_dataset.dump(output_file_path)
 
     # Run evaluation
     # TODO: Refactor this part of the pipeline
