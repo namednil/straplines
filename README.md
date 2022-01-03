@@ -18,3 +18,10 @@ python weakly_supervised_method/pipeline.py --train TRAIN --test TEST --plots_di
 
 - To check the code coverage:
 `coverage report -m`
+
+## Clickbait models
+
+The model is built on [DistilBERT](https://huggingface.co/docs/transformers/model_doc/distilbert) using the [Webis-Clickbait-17](https://webis.de/data/webis-clickbait-17.html) dataset.
+
+- First download the pretrained model folder from https://uoe-my.sharepoint.com/:f:/g/personal/s2063031_ed_ac_uk/Emnyjc9-Gz1CthtXoCzkppIB2DeSnEpTxBNmlSBElpbqQw?e=aQ6s9e.
+- Put the folder under the main directory.
