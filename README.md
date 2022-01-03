@@ -26,8 +26,8 @@ The model is built on [DistilBERT](https://huggingface.co/docs/transformers/mode
 - First download the pretrained model folder from https://uoe-my.sharepoint.com/:f:/g/personal/s2063031_ed_ac_uk/Emnyjc9-Gz1CthtXoCzkppIB2DeSnEpTxBNmlSBElpbqQw?e=aQ6s9e.
 - Create a folder named 'clickbait_models' under the current directory and put the downloaded files under it. The directory structure should be:
 ```
-  -- straplines
-     -- clickbait_models
-        -- DistilBert4ClickBait.model
-        -- DistilBert4ClickBait.tokenizer
+straplines
+└--clickbait_models
+   └--DistilBert4ClickBait.model
+   └--DistilBert4ClickBait.tokenizer
 ```
