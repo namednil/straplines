@@ -12,6 +12,7 @@ from weakly_supervised_method.heuristics import (
     lf_has_question_exclamation_marks,
     lf_imperative_speech,
     lf_is_repeated,
+    lf_is_clickbait,
 )
 from weakly_supervised_method.model import WeaklySupervisedMethod
 from snorkel.labeling.model import MajorityLabelVoter, LabelModel
@@ -88,6 +89,7 @@ if __name__ == "__main__":
             lf_has_question_exclamation_marks,
             lf_imperative_speech,
             lf_is_repeated,
+            lf_is_clickbait,
         ]
     )
     heuristics_train, _ = heuristics_model.fit(cleaned_dataset)
