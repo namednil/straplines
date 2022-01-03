@@ -28,6 +28,7 @@ The model is built on [DistilBERT](https://huggingface.co/docs/transformers/mode
 ```
 straplines
 └--clickbait_models
-   └--DistilBert4ClickBait.model
-   └--DistilBert4ClickBait.tokenizer
+│   └--DistilBert4ClickBait.model
+│   └--DistilBert4ClickBait.tokenizer
+└--...
 ```
