@@ -44,7 +44,7 @@ class NewsRoomArticle:
 
 
 class NewsRoomDataset:
-    def __init__(self, data_file=None, summaries_dict=None):
+    def __init__(self, data_file=None, summaries_dict=None, titles_dict=None):
         self.spacy_model = spacy.load("en_core_web_sm")
 
         if data_file:
@@ -73,17 +73,31 @@ class NewsRoomDataset:
             # Load the summaries dict from another dict
             self.summaries_dict = summaries_dict
 
-        logging.info("Search for duplicated summaries")
+        if not titles_dict:
+            self.titles_dict = {}
+        else:
+            # Load the titles dict from another dict
+            self.titles_dict = titles_dict
+
+        logging.info("Search for duplicated titles/summaries")
         for article in tqdm(self.articles):
             summary = article.data["summary"]
+            title = article.data["title"]
             if summary not in self.summaries_dict:
                 self.summaries_dict[summary] = 1
             else:
                 self.summaries_dict[summary] += 1
+            if title not in self.titles_dict:
+                self.titles_dict[title] = 1
+            else:
+                self.titles_dict[title] += 1
 
         for article in tqdm(self.articles):
             article.data["summary_repetition_count"] = self.summaries_dict[
                 article.data["summary"]
+            ]
+            article.data["title_repetition_count"] = self.titles_dict[
+                article.data["title"]
             ]
 
     def filter_articles(self, drop_mask):
