@@ -7,6 +7,12 @@ from weakly_supervised_method.heuristics_utils import (
 )
 from langdetect import detect
 
+# for clickbait detection
+import torch
+from transformers import DistilBertTokenizerFast
+from torch.utils.data import DataLoader
+from transformers import DistilBertForSequenceClassification, AdamW, get_scheduler, logging
+
 # NOTE: I am afraid of returning a NOT_STRAPLINE, NOT_NOISY label
 # based on any of the heuristics so I am just ABSTAINing
 NOT_STRAPLINE = 0
@@ -117,3 +123,23 @@ def lf_is_repeated(article):
     ):
         return STRAPLINE
     return ABSTAIN
+
+
+@labeling_function()
+def lf_is_clickbait(article):
+    device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+
+    tokenizer = DistilBertTokenizerFast.from_pretrained('./clickbait_models/DistilBert4ClickBait.tokenizer/')
+    model = DistilBertForSequenceClassification.from_pretrained('./clickbait_models/DistilBert4ClickBait.model/').to(device)
+
+    input_encodings = tokenizer(article.data["summary"], truncation=True, padding=True)
+    input_ids = torch.tensor(input_encodings['input_ids']).unsqueeze(0).to(device)
+    attention_mask = torch.tensor(input_encodings['attention_mask']).to(device)
+
+    model.eval()
+    with torch.no_grad():
+        outputs = model(input_ids, attention_mask)
+        predictions = torch.argmax(outputs.logits, dim=-1)
+        if(predictions.item()):
+            return STRAPLINE
+        return ABSTAIN
