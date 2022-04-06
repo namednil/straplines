@@ -7,6 +7,8 @@ import logging
 
 logging.basicConfig(level=logging.INFO)
 
+from copy import deepcopy
+
 
 class NewsRoomArticle:
     def __init__(self, data):
@@ -17,12 +19,6 @@ class NewsRoomArticle:
 
         self.data["normalized_density"] = self.data["density"] / len(
             self.data["summary_tokens"]
-        )
-
-        # Generate preprocessed fields
-        # TODO: Make this more generic
-        self.data["preprocessed_summary"] = re.sub(
-            r" - USATODAY.com$", "", self.data["summary"]
         )
 
         # TODO: Optimize those thersholds
@@ -39,15 +35,23 @@ class NewsRoomArticle:
             else "extractive"
         )
 
+    def dump(self):
+        summary_tokens = self.data["summary_tokens"]
+        self.data.pop("summary_tokens", None)
+        json_str = json.dumps(self.data)
+        self.data["summary_tokens"] = summary_tokens
+        return json_str
+
 
 class NewsRoomDataset:
-    def __init__(self, data_file=None, articles=None, summaries_dict=None):
+    def __init__(self, data_file=None, summaries_dict=None, titles_dict=None):
         self.spacy_model = spacy.load("en_core_web_sm")
 
         if data_file:
             with open(data_file, "r") as f:
                 article_jsons = [json.loads(l.strip()) for l in f]
 
+            # Filter out articles having extractive summaries.
             self.articles = [
                 NewsRoomArticle(article_json)
                 for article_json in article_jsons
@@ -58,34 +62,58 @@ class NewsRoomDataset:
             for article in tqdm(self.articles):
                 article.compute_additional_fields(self.spacy_model)
 
-        elif articles:
-            self.articles = articles
-
         else:
             raise ValueError(
-                "Please specify either a 'data_file' or a list of 'articles'"
+                "Please specify either a 'data_file' for a subset of NewsRoom."
             )
 
         if not summaries_dict:
             self.summaries_dict = {}
         else:
+            # Load the summaries dict from another dict
             self.summaries_dict = summaries_dict
 
-        logging.info("Search for duplicated summaries")
+        if not titles_dict:
+            self.titles_dict = {}
+        else:
+            # Load the titles dict from another dict
+            self.titles_dict = titles_dict
+
+        logging.info("Search for duplicated titles/summaries")
         for article in tqdm(self.articles):
             summary = article.data["summary"]
+            title = article.data["title"]
             if summary not in self.summaries_dict:
                 self.summaries_dict[summary] = 1
             else:
                 self.summaries_dict[summary] += 1
+            if title not in self.titles_dict:
+                self.titles_dict[title] = 1
+            else:
+                self.titles_dict[title] += 1
 
         for article in tqdm(self.articles):
             article.data["summary_repetition_count"] = self.summaries_dict[
                 article.data["summary"]
             ]
+            article.data["title_repetition_count"] = self.titles_dict[
+                article.data["title"]
+            ]
 
-    def generate_a_cleaned_dataset(self, predictions):
-        articles = [
-            article for article, pred in zip(self.articles, predictions) if pred != 1
+    def filter_articles(self, drop_mask):
+        """Filter out articles having drop_mask that isn't equal to one."""
+        dataset = deepcopy(self)
+        filtered_articles = [
+            article for article, drop in zip(dataset.articles, drop_mask) if drop != 1
         ]
-        return NewsRoomDataset(articles=articles)
+        dataset.articles = filtered_articles
+        return dataset
+
+    # TODO: Store/load the dataset to avoid repetitive computations
+    def dump(self, filename):
+        json_str = "\n".join([article.dump() for article in tqdm(self.articles)])
+        with open(filename, "w") as f:
+            f.write(json_str)
+
+    def unpickle(self):
+        pass
